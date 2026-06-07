@@ -1,121 +1,43 @@
 package br.edu.ifpb.ads.padroes.atv1.rpg;
 
-public class CriadorPersonagem {
+import java.util.Map;
+
+public abstract class CriadorPersonagem {
+
+    private static final Map<String, FabricaEquipamento> fabricas = Map.of(
+        "Humano_Guerreiro",  new FabricaEquipamentoHumanoGuerreiro(),
+        "Humano_Mago",       new FabricaEquipamentoHumanoMago(),
+        "Humano_Arqueiro",   new FabricaEquipamentoHumanoArqueiro(),
+        "Elfo_Guerreiro",    new FabricaEquipamentoElfoGuerreiro(),
+        "Elfo_Mago",         new FabricaEquipamentoElfoMago(),
+        "Elfo_Arqueiro",     new FabricaEquipamentoElfoArqueiro(),
+        "Orc_Guerreiro",     new FabricaEquipamentoOrcGuerreiro(),
+        "Orc_Mago",          new FabricaEquipamentoOrcMago(),
+        "Orc_Arqueiro",      new FabricaEquipamentoOrcArqueiro()
+    );
 
     public static Personagem criarPersonagem(String nome, String raca, String classe) {
+        FabricaEquipamento fabrica = fabricas.get(raca + "_" + classe);
 
-        int forca = 0, inteligencia = 0, agilidade = 0, vida = 0, mana = 0;
-        Arma arma = null;
-        Armadura armadura = null;
-        String[] habilidades = null;
-
-        if (raca.equals("Humano")) {
-            if (classe.equals("Guerreiro")) {
-                forca = 15;
-                inteligencia = 8;
-                agilidade = 10;
-                vida = 120;
-                mana = 30;
-
-                arma = new Arma("Espada de Ferro", 25, "Espada");
-                armadura = new Armadura("Armadura de Placas", 20, "Pesada");
-                habilidades = new String[]{"Investida", "Bloqueio"};
-
-            } else if (classe.equals("Mago")) {
-                forca = 6;
-                inteligencia = 18;
-                agilidade = 8;
-                vida = 80;
-                mana = 150;
-                arma = new Arma("Cajado Mágico", 15, "Cajado");
-                armadura = new Armadura("Vestes Mágicas", 8, "Leve");
-                habilidades = new String[]{"Bola de Fogo", "Cura"};
-
-            } else if (classe.equals("Arqueiro")) {
-                forca = 10;
-                inteligencia = 12;
-                agilidade = 16;
-                vida = 100;
-                mana = 70;
-                arma = new Arma("Arco Élfico", 20, "Arco");
-                armadura = new Armadura("Armadura de Couro", 12, "Média");
-                habilidades = new String[]{"Tiro Certeiro", "Chuva de Flechas"};
-            }
-
-        } else if (raca.equals("Elfo")) {
-            if (classe.equals("Guerreiro")) {
-                forca = 12;
-                inteligencia = 14;
-                agilidade = 16;
-                vida = 100;
-                mana = 60;
-                arma = new Arma("Lâmina Élfica", 22, "Espada");
-                armadura = new Armadura("Cota de Malha Élfica", 15, "Média");
-                habilidades = new String[]{"Dança das Lâminas", "Agilidade Élfica"};
-
-            } else if (classe.equals("Mago")) {
-                forca = 4;
-                inteligencia = 20;
-                agilidade = 14;
-                vida = 70;
-                mana = 180;
-                arma = new Arma("Cajado da Natureza", 18, "Cajado");
-                armadura = new Armadura("Mantos Élficos", 10, "Leve");
-                habilidades = new String[]{"Magia da Natureza", "Teleporte"};
-
-            } else if (classe.equals("Arqueiro")) {
-                forca = 8;
-                inteligencia = 16;
-                agilidade = 20;
-                vida = 90;
-                mana = 100;
-                arma = new Arma("Arco Longo Élfico", 28, "Arco");
-                armadura = new Armadura("Armadura de Couro Élfico", 14, "Média");
-                habilidades = new String[]{"Tiro Múltiplo", "Camuflagem"};
-            }
-
-        } else if (raca.equals("Orc")) {
-            if (classe.equals("Guerreiro")) {
-                forca = 20;
-                inteligencia = 6;
-                agilidade = 8;
-                vida = 150;
-                mana = 20;
-                arma = new Arma("Machado de Guerra", 30, "Machado");
-                armadura = new Armadura("Armadura Brutal", 25, "Pesada");
-                habilidades = new String[]{"Fúria", "Pancada Devastadora"};
-
-            } else if (classe.equals("Mago")) {
-                // PROBLEMA: Combinação estranha, mas o código permite
-                forca = 10;
-                inteligencia = 14;
-                agilidade = 6;
-                vida = 100;
-                mana = 120;
-                arma = new Arma("Cajado Tribal", 12, "Cajado");
-                armadura = new Armadura("Vestes Xamânicas", 6, "Leve");
-                habilidades = new String[]{"Magia Sombria", "Invocação"};
-
-            } else if (classe.equals("Arqueiro")) {
-                forca = 14;
-                inteligencia = 8;
-                agilidade = 12;
-                vida = 120;
-                mana = 40;
-                arma = new Arma("Arco de Osso", 24, "Arco");
-                armadura = new Armadura("Couro de Besta", 16, "Média");
-                habilidades = new String[]{"Tiro Brutal", "Intimidação"};
-            }
-        }
-
-        // Retorna null se combinação inválida
-        if (arma == null) {
+        if (fabrica == null) {
             System.out.println("Combinação inválida: " + raca + " " + classe);
             return null;
         }
 
-        return new Personagem(nome, raca, classe, forca, inteligencia, agilidade,
-                vida, mana, arma, armadura, habilidades);
+        int[] atributos = resolverAtributos(raca, classe);
+
+        return new Personagem.Builder(nome)
+                .raca(raca)
+                .classe(classe)
+                .forca(atributos[0])
+                .inteligencia(atributos[1])
+                .agilidade(atributos[2])
+                .vida(atributos[3])
+                .mana(atributos[4])
+                .arma(fabrica.criarArma())
+                .armadura(fabrica.criarArmadura())
+                .habilidades(resolverHabilidades(raca, classe))
+                .build();
     }
 
     public static Personagem criarPersonagemEspecial(String nome, String raca, String classe) {
@@ -123,14 +45,41 @@ public class CriadorPersonagem {
         if (base == null) return null;
 
         if (raca.equals("Humano") && classe.equals("Guerreiro")) {
-            return new Personagem(nome + " o Lendário", raca, classe,
-                    18, 10, 12, 140, 40,
-                    new Arma("Excalibur", 35, "Espada"),
-                    new Armadura("Armadura do Rei", 30, "Pesada"),
-                    new String[]{"Investida", "Bloqueio", "Liderança"});
+            Personagem especial = base.clone();
+            especial.setNome(nome + " o Lendário");
+            return especial;
         }
 
         return base;
     }
 
+    private static int[] resolverAtributos(String raca, String classe) {
+        return switch (raca + "_" + classe) {
+            case "Humano_Guerreiro"  -> new int[]{15, 8,  10, 120, 30};
+            case "Humano_Mago"       -> new int[]{6,  18, 8,  80,  150};
+            case "Humano_Arqueiro"   -> new int[]{10, 12, 16, 100, 70};
+            case "Elfo_Guerreiro"    -> new int[]{12, 14, 16, 100, 60};
+            case "Elfo_Mago"         -> new int[]{4,  20, 14, 70,  180};
+            case "Elfo_Arqueiro"     -> new int[]{8,  16, 20, 90,  100};
+            case "Orc_Guerreiro"     -> new int[]{20, 6,  8,  150, 20};
+            case "Orc_Mago"          -> new int[]{10, 14, 6,  100, 120};
+            case "Orc_Arqueiro"      -> new int[]{14, 8,  12, 120, 40};
+            default -> new int[]{0, 0, 0, 0, 0};
+        };
+    }
+
+    private static String[] resolverHabilidades(String raca, String classe) {
+        return switch (raca + "_" + classe) {
+            case "Humano_Guerreiro"  -> new String[]{"Investida", "Bloqueio"};
+            case "Humano_Mago"       -> new String[]{"Bola de Fogo", "Cura"};
+            case "Humano_Arqueiro"   -> new String[]{"Tiro Certeiro", "Chuva de Flechas"};
+            case "Elfo_Guerreiro"    -> new String[]{"Dança das Lâminas", "Agilidade Élfica"};
+            case "Elfo_Mago"         -> new String[]{"Magia da Natureza", "Teleporte"};
+            case "Elfo_Arqueiro"     -> new String[]{"Tiro Múltiplo", "Camuflagem"};
+            case "Orc_Guerreiro"     -> new String[]{"Fúria", "Pancada Devastadora"};
+            case "Orc_Mago"          -> new String[]{"Magia Sombria", "Invocação"};
+            case "Orc_Arqueiro"      -> new String[]{"Tiro Brutal", "Intimidação"};
+            default -> new String[]{};
+        };
+    }
 }
